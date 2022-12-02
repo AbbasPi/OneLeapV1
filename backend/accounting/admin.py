@@ -2,7 +2,7 @@ from django.contrib import admin
 from treenode.admin import TreeNodeModelAdmin
 from treenode.forms import TreeNodeForm
 
-from .models import Account
+from .models import Account, Transaction, JournalEntry
 
 
 class AccountAdmin(TreeNodeModelAdmin):
@@ -16,7 +16,10 @@ class AccountAdmin(TreeNodeModelAdmin):
     # use TreeNodeForm to automatically exclude invalid parent choices
     form = TreeNodeForm
 
-    list_display = ('id', 'code', 'name')
+    list_display = ('id', 'code', 'name', 'type', 'statement', 'balance')
+    readonly_fields = ('current_balance_with_sub_accounts',)
 
 
 admin.site.register(Account, AccountAdmin)
+admin.site.register(Transaction)
+admin.site.register(JournalEntry)
