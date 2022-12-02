@@ -42,14 +42,14 @@ class Account(TreeNodeModel):
     treenode_display_field = "name"
 
     @property
-    def balance(self):
+    def acc_balance(self):
         return Account.objects.filter(id=self.id).aggregate(s=Sum('account_JE__debit') + Sum('account_JE__credit'))['s']
 
-    def current_balance_with_sub_accounts(self):
+    def balance(self):
         if self.type in [AccountTypeChoices.ASSET, AccountTypeChoices.LIABILITY, AccountTypeChoices.EQUITY]:
-            return self.balance + sum([account.balance for account in self.get_children()])
+            return self.acc_balance + sum([account.acc_balance for account in self.get_children()])
         else:
-            return self.balance
+            return self.acc_balance
 
 
 class Transaction(models.Model):

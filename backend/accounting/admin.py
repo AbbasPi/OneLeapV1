@@ -17,7 +17,7 @@ class AccountAdmin(TreeNodeModelAdmin):
     form = TreeNodeForm
 
     list_display = ('id', 'code', 'name', 'type', 'statement', 'balance')
-    readonly_fields = ('current_balance_with_sub_accounts',)
+    readonly_fields = ('balance',)
 
 
 admin.site.register(Account, AccountAdmin)
