@@ -12,21 +12,28 @@ class TransactionTypeChoices(models.TextChoices):
 
 
 class AccountTypeChoices(models.TextChoices):
-    ASSET = 'asset', 'Asset'
-    LIABILITY = 'liability', 'Liability'
-    EQUITY = 'equity', 'Equity'
-    INCOME = 'income', 'Income'
-    EXPENSE = 'expense', 'Expense'
+    ASSET = 'Asset'
+    LIABILITY = 'Liability'
+    EQUITY = 'Equity'
+    INCOME = 'Income'
+    EXPENSE = 'Expense'
+
+
+class StatementChoices(models.TextChoices):
+    BALANCE_SHEET = 'Balance Sheet'
+    INCOME_AND_EXPENSE = 'Income and Expense'
+    CASH_FLOW_STATEMENT = 'Cash Flow Statement'
+    CHANGE_IN_EQUITY = 'Change in Equity'
 
 
 class JournalEntryTypeChoices(models.TextChoices):
-    SIMPLE_ENTRY = 'SE', 'Simple Entry'
-    COMPOUND_ENTRY = 'CE', 'Compound Entry'
-    OPENING_ENTRY = 'OE', 'Opening Entry'
-    TRANSFER_ENTRY = 'TE', 'Transfer Entry'
-    CLOSING_ENTRY = 'CLE', 'Closing Entry'
-    ADJUSTMENT_ENTRY = 'AE', 'Adjustment Entry'
-    RECTIFYING_ENTRY = 'RE', 'Rectifying Entry'
+    SIMPLE_ENTRY = 'Simple Entry'
+    COMPOUND_ENTRY = 'Compound Entry'
+    OPENING_ENTRY = 'Opening Entry'
+    TRANSFER_ENTRY = 'Transfer Entry'
+    CLOSING_ENTRY = 'Closing Entry'
+    ADJUSTMENT_ENTRY = 'Adjustment Entry'
+    RECTIFYING_ENTRY = 'Rectifying Entry'
 
 
 class Account(TreeNodeModel):
@@ -36,18 +43,24 @@ class Account(TreeNodeModel):
     active = models.BooleanField('Active', default=True)
     type = models.CharField('Type', max_length=255, choices=AccountTypeChoices.choices)
     statement = models.CharField('Statement', max_length=255,
-                                 choices=[('BS', 'Balance Sheet'), ('PL', 'Profit and Loss'), ('CF', 'Cash Flow')])
+                                 choices=StatementChoices.choices, blank=True)
     created = models.DateTimeField(editable=False, auto_now_add=True)
     updated = models.DateTimeField(editable=False, auto_now=True)
     treenode_display_field = "name"
 
     @property
     def acc_balance(self):
-        return Account.objects.filter(id=self.id).aggregate(s=Sum('account_JE__debit') + Sum('account_JE__credit'))['s']
+        if self.account_JE:
+            return Account.objects.filter(id=self.id).aggregate(s=Sum('account_JE__debit') + Sum('account_JE__credit'))[
+                's']
+        else:
+            return 0
 
     def balance(self):
         if self.type in [AccountTypeChoices.ASSET, AccountTypeChoices.LIABILITY, AccountTypeChoices.EQUITY]:
-            return self.acc_balance + sum([account.acc_balance for account in self.get_children()])
+            if self.acc_balance:
+                return self.acc_balance + sum(
+                    [account.acc_balance for account in self.get_children() if account.acc_balance])
         else:
             return self.acc_balance
 
